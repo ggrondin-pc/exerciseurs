@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!-- Guillaume Grondin - Enseignement Physique Chimie - Collège - Licence CC BY-NC-SA 4.0 -->
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Espace professeur</title>
+<meta name="author" content="Guillaume Grondin - Enseignement Physique Chimie - Collège">
+<link rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr">
+<meta name="robots" content="noindex, nofollow">
+<style>:root{--fond:#E9EEF1;--carte:#fff;--encre:#16222E;--doux:#5A6B78;--ligne:#CCD6DD;--navy:#1B3A5C;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--fond:#10171D;--carte:#18232C;--encre:#E4ECF1;--doux:#9AABB7;--ligne:#2C3A45;--navy:#9CC0E6;color-scheme:dark}}
+:root[data-theme="dark"]{--fond:#10171D;--carte:#18232C;--encre:#E4ECF1;--doux:#9AABB7;--ligne:#2C3A45;--navy:#9CC0E6;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:var(--fond);color:var(--encre);font:16px/1.5 "Atkinson Hyperlegible","Segoe UI",Arial,sans-serif}
+a{color:var(--navy)}h1,h2{font-family:"Bricolage Grotesque",Arial,sans-serif;margin:0;text-wrap:balance}
+.wrap{max-width:900px;margin:0 auto;padding:28px 16px 48px}h1{font-size:28px;margin-bottom:8px}h2{font-size:20px;margin:26px 0 8px}
+.boite{background:var(--carte);border:1px solid var(--ligne);border-radius:14px;padding:16px 18px;margin:12px 0}
+input[type=password],input[type=text]{font:inherit;padding:8px 10px;border:1px solid var(--ligne);border-radius:8px;background:var(--fond);color:var(--encre);width:100%;max-width:420px}
+button{font:inherit;font-weight:700;background:var(--navy);color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer}
+button.sec{background:transparent;color:var(--navy);border:1px solid var(--ligne)}
+table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid var(--ligne);padding:8px 6px;text-align:left;vertical-align:middle}
+.niv{display:inline-block;color:#fff;border-radius:6px;padding:0 8px;font-weight:700}.m{min-height:1.5em}.ok{color:#2E6B3A}.err{color:#B3261E}
+textarea{width:100%;height:120px;font:12px monospace}.petit{color:var(--doux);font-size:14px}
+</style></head>
+<body><div class="wrap"><p><a href="index.html">← Accueil</a></p><h1>Espace professeur</h1>
+<div id="login" class="boite"><form id="f"><label for="mdp">Mot de passe</label><br><input type="password" id="mdp" autocomplete="current-password" required>
+<p><label><input type="checkbox" id="souv"> rester connecté 30 jours sur cet appareil</label></p><button>Ouvrir</button><p class="m err" id="msg"></p></form></div>
+<div id="app" hidden>
+<p class="petit">Cochez ce que les élèves peuvent ouvrir, puis enregistrez. Le site se met à jour en une à deux minutes (parfois jusqu'à 10 minutes à cause du cache). Ce qui n'est pas coché ne s'ouvre qu'avec votre mot de passe.</p>
+<h2>Simulations d'activités expérimentales</h2><div class="boite"><table id="tSim"></table></div>
+<h2>Séances projetées</h2><div class="boite"><table id="tSea"></table></div>
+<p><button id="save">Enregistrer</button> <button class="sec" id="logout">Se déconnecter de cet appareil</button></p><p class="m" id="etat"></p>
+<details class="boite"><summary>Enregistrement automatique sur GitHub (jeton)</summary>
+<p class="petit">Une seule fois par appareil : créez un jeton « fine-grained » limité au dépôt <b>ggrondin-pc/exerciseurs</b>, permission <b>Contents : Read and write</b> (github.com → Settings → Developer settings → Personal access tokens). Il reste dans ce navigateur seulement.</p>
+<input type="text" id="tok" placeholder="github_pat_…" autocomplete="off"> <button class="sec" id="tokSave">Garder ce jeton</button> <button class="sec" id="tokDel">Oublier</button></details>
+<details class="boite" id="manuel"><summary>Sans jeton : copier-coller</summary>
+<p class="petit">Copiez ce texte, ouvrez <a target="_blank" href="https://github.com/ggrondin-pc/exerciseurs/edit/main/acces.json">acces.json sur GitHub</a>, remplacez tout le contenu, puis « Commit changes ».</p>
+<textarea id="json" readonly></textarea><p><button class="sec" id="copy">Copier</button></p></details>
+</div></div>
+<script>
+const K="GG_admin_cles",T="GG_admin_token",REPO="ggrondin-pc/exerciseurs";
+const $=i=>document.getElementById(i),b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+let CAT=[],CLES=null,ACC={};
+function coffre(){try{const v=JSON.parse(localStorage.getItem(K)||"null");if(v&&v.exp>Date.now())return v.cles;localStorage.removeItem(K)}catch(e){}return null}
+async function charger(){const j=await (await fetch("cles.json?t="+Date.now(),{cache:"no-store"})).json();CAT=j.catalogue;return j}
+async function acces(){try{ACC=(await (await fetch("acces.json?t="+Date.now(),{cache:"no-store"})).json()).ouvert||{}}catch(e){ACC={}}}
+function ligne(c){return `<tr><td><span class="niv" style="background:${c.accent}">${c.niveau}</span> ch. ${c.chapitre}</td><td>${c.titre}</td>
+<td><label><input type="checkbox" data-id="${c.id}" ${ACC[c.id]?"checked":""}> élèves</label></td><td><a href="${c.url}" target="_blank">Ouvrir</a></td></tr>`}
+function rendre(){$("tSim").innerHTML=CAT.filter(c=>c.type==="simulation").map(ligne).join("");$("tSea").innerHTML=CAT.filter(c=>c.type==="seance").map(ligne).join("");
+ $("login").hidden=true;$("app").hidden=false;$("tok").value=localStorage.getItem(T)||"";maj()}
+function contenu(){const o={};document.querySelectorAll("[data-id]").forEach(x=>{if(x.checked)o[x.dataset.id]=CLES[x.dataset.id]});
+ return JSON.stringify({maj:new Date().toISOString().slice(0,16),ouvert:o},null,1)+"\n"}
+function maj(){$("json").value=contenu()}
+document.addEventListener("change",e=>{if(e.target.dataset&&e.target.dataset.id)maj()});
+$("f").onsubmit=async e=>{e.preventDefault();$("msg").textContent="Vérification…";
+ try{const j=await charger();const pw=new TextEncoder().encode($("mdp").value.trim().normalize("NFC"));
+  const bk=await crypto.subtle.importKey("raw",pw,"PBKDF2",false,["deriveKey"]);
+  const key=await crypto.subtle.deriveKey({name:"PBKDF2",salt:b64(j.sel),iterations:j.iter,hash:"SHA-256"},bk,{name:"AES-GCM",length:256},false,["decrypt"]);
+  const d=b64(j.coffre);CLES=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:d.slice(0,12)},key,d.slice(12))));
+  localStorage.setItem(K,JSON.stringify({exp:Date.now()+($("souv").checked?30*864e5:12*36e5),cles:CLES}));$("msg").textContent="";await acces();rendre();
+ }catch(err){$("msg").textContent="Mot de passe incorrect."}};
+$("logout").onclick=()=>{localStorage.removeItem(K);location.reload()};
+$("tokSave").onclick=()=>{localStorage.setItem(T,$("tok").value.trim());$("etat").textContent="Jeton gardé sur cet appareil."};
+$("tokDel").onclick=()=>{localStorage.removeItem(T);$("tok").value="";$("etat").textContent="Jeton oublié."};
+$("copy").onclick=()=>{navigator.clipboard.writeText($("json").value).then(()=>$("etat").textContent="Copié.")};
+$("save").onclick=async()=>{const tok=localStorage.getItem(T);const txt=contenu();
+ if(!tok){$("manuel").open=true;$("etat").innerHTML="Pas de jeton sur cet appareil : copiez le texte ci-dessous dans acces.json sur GitHub.";return}
+ $("etat").textContent="Enregistrement…";const u=`https://api.github.com/repos/${REPO}/contents/acces.json`,h={Authorization:"Bearer "+tok,Accept:"application/vnd.github+json"};
+ try{const g=await fetch(u+"?ref=main",{headers:h,cache:"no-store"});const sha=g.ok?(await g.json()).sha:undefined;
+  const r=await fetch(u,{method:"PUT",headers:h,body:JSON.stringify({message:"Accès élèves mis à jour",content:btoa(unescape(encodeURIComponent(txt))),sha,branch:"main"})});
+  if(!r.ok)throw new Error(r.status);$("etat").innerHTML='<span class="ok">Enregistré.</span> Le site sera à jour dans une à deux minutes.';
+ }catch(err){$("manuel").open=true;$("etat").innerHTML='<span class="err">Échec de l\'enregistrement ('+err.message+')</span> : vérifiez le jeton, ou utilisez le copier-coller.'}};
+(async()=>{CLES=coffre();if(CLES){await charger();await acces();rendre()}})();
+</script></body></html>

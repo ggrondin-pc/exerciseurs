@@ -1,0 +1,124 @@
+{
+"sel": "eoMu0UN/fC2BSloj4r6i4w==",
+"iter": 600000,
+"coffre": "A2Ubv31F0gxTbwiFTftfSZJvsMa+9Kd2XIIA0FTClm6SupmpvV2UOvaWXP2/JhTpNmFKRaInbEzbijkbpSFfte6loAGS5JzwiGKvSmbYQQzxpPfuVhy1LwOxkb0dRP5lRdKmtIgjoY0DOzcpGcrUh3khzzt6GJmfPqkB+icvcxr0V4/rrmrscSD/pi4at+rOMHguKxesyBkGJdu2GdXYzl6mUhO66FfKE7huCgWvjB7oXCzVIJkmlhAZbbhDDfKtZoOo6jHaH9KZ5vWVuySs4Q5xaH2nBP5WXJ2otqPLyZ41H7aBX5S7JYuQIGJ1b4fQN68qfnrqifQ9gRQ9KoMU+i1wczxm6bpjemWvJYovCVKFKv2Mb4cQXA/IJicf2ziDO14T3LBG8W9H7dLU8//sO4ohe/rdFjyMAulGOjPl8RN1ABwk7j1mTExNQqMlEL7nVg2FUA+7I4f33GyCKDMQKogqzyDLO0BSjbXMArDk30IvLPzBeXy2n9AJ88xaU0UYpRhbA/XhDtN1gBgEH11moIvBWQbTR/WKMw8Gyq9vNhd+srTmX/9KJCb0Zx+QtYJvXhAMufLzXB2Fr7yl4hE+cbMdVk7DPuw1PgBalLiOPW2mXVp4/q76Pj/LkekwAz1yoInUmZkkosflYO3jKr038QqX2iROeojtrb3gSgoHcdfOAF0QYh1MUEp7+8vA4Z69ffv3VS9c7Th3PIjrIHXUgkKHeVUrQ5SPkakH+gma9IeJgWWIpjFvix5JKG9tM4oo3Ng/LwDEmbC4l73ccUh3rEr762iMuoEkM6bY7xzJ+1m9WI/1VaKIfLmL4MazTNb//wZMGHwxge8bm9BIhoA7KycyF2ouLB2WQZNm/2E6F1C+rjwPvLVueDCx2mVyIXJ9RVRc+IC69/VzB5Oml7Z8/MuK1Y4ePLxoSJwQKx4MVIIo1kcIDYv5XmJDHb8tv53XKD8OZHYq5cHZ56PJKXLHbu8I4sdgb2Jq+DenbEmTFAsuINkuVTb9RSNTn8+NBHL4PnFtaLwSNHCS6UTre65S49ZkAWsTp2HhywqBx3b2Y29UM2kgok7Plnd/yseV1dkWrgXSCFf4GMhayrNlJDmJf7N/kdCm5DGKN5BJ1YC5LrPvJ9uISlhIOO35HNBE068t8QmjSVK2sky3cuOmEg7wmtdRtfQaCuCrq8pIVene0znbQI3p1zdbx4b09CrM3l2rfmRT6RAk4G382qbdl8ehhxg7IledvcSh0alOGAgay1BmAJ8=",
+"catalogue": [
+{
+"id": "seances-6e-materiaux",
+"type": "seance",
+"url": "seances/6e-materiaux.html",
+"niveau": "6e",
+"chapitre": 1,
+"titre": "Les familles de matériaux et leur devenir",
+"accent": "#2E6B3A"
+},
+{
+"id": "seances-6e-proprietes",
+"type": "seance",
+"url": "seances/6e-proprietes.html",
+"niveau": "6e",
+"chapitre": 2,
+"titre": "Quelques propriétés physiques de la matière",
+"accent": "#2E6B3A"
+},
+{
+"id": "seances-5e-etats-matiere",
+"type": "seance",
+"url": "seances/5e-etats-matiere.html",
+"niveau": "5e",
+"chapitre": 1,
+"titre": "États de la matière et changements d'état",
+"accent": "#A04A12"
+},
+{
+"id": "seances-5e-melanges",
+"type": "seance",
+"url": "seances/5e-melanges.html",
+"niveau": "5e",
+"chapitre": 2,
+"titre": "Corps purs et mélanges",
+"accent": "#A04A12"
+},
+{
+"id": "seances-4e-air",
+"type": "seance",
+"url": "seances/4e-air.html",
+"niveau": "4e",
+"chapitre": 1,
+"titre": "L'air et les tests caractéristiques",
+"accent": "#1B3A5C"
+},
+{
+"id": "seances-4e-masse-volumique",
+"type": "seance",
+"url": "seances/4e-masse-volumique.html",
+"niveau": "4e",
+"chapitre": 2,
+"titre": "Masse volumique et conservation de la masse",
+"accent": "#1B3A5C"
+},
+{
+"id": "labo-6e-materiaux",
+"type": "simulation",
+"url": "simulations/labo-6e-materiaux.html",
+"niveau": "6e",
+"chapitre": 1,
+"titre": "Labo des familles de matériaux",
+"accent": "#2E6B3A"
+},
+{
+"id": "labo-6e-proprietes",
+"type": "simulation",
+"url": "simulations/labo-6e-proprietes.html",
+"niveau": "6e",
+"chapitre": 2,
+"titre": "Labo des propriétés physiques",
+"accent": "#2E6B3A"
+},
+{
+"id": "labo-5e-etats-matiere",
+"type": "simulation",
+"url": "simulations/labo-5e-etats-matiere.html",
+"niveau": "5e",
+"chapitre": 1,
+"titre": "Labo des états de la matière",
+"accent": "#A04A12"
+},
+{
+"id": "labo-5e-melanges",
+"type": "simulation",
+"url": "simulations/labo-5e-melanges.html",
+"niveau": "5e",
+"chapitre": 2,
+"titre": "Labo des corps purs et des mélanges",
+"accent": "#A04A12"
+},
+{
+"id": "labo-4e-air",
+"type": "simulation",
+"url": "simulations/labo-4e-air.html",
+"niveau": "4e",
+"chapitre": 1,
+"titre": "Labo de l'air",
+"accent": "#1B3A5C"
+},
+{
+"id": "labo-buchette",
+"type": "simulation",
+"url": "simulations/labo-buchette.html",
+"niveau": "4e",
+"chapitre": 1,
+"titre": "Labo Bûchette : le test du dioxygène",
+"accent": "#1B3A5C"
+},
+{
+"id": "labo-4e-masse-volumique",
+"type": "simulation",
+"url": "simulations/labo-4e-masse-volumique.html",
+"niveau": "4e",
+"chapitre": 2,
+"titre": "Labo de la masse volumique",
+"accent": "#1B3A5C"
+}
+]
+}
