@@ -1,0 +1,7 @@
+# scienceexotic.fr — le navigateur revérifie les pages et scripts à chaque visite (mises à jour visibles tout de suite)
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|js|json)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+Options -Indexes
