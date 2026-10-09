@@ -70,6 +70,12 @@
     envoyer("exo", x, typeof score === "number" ? Math.round(score) : undefined);
   };
 
+  // ---- Question du niveau : sur les pages destinées aux élèves (exerciseurs, séances, labos, cours) ----
+  if (!niveau && /^(exerciseurs|seances|simulations|cours)\//.test(page)) {
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { setTimeout(poser, 1500); });
+    else setTimeout(poser, 1500);
+  }
+
   // ---- Exerciseurs : on lit seulement le résultat affiché à l'élève (aucune réponse saisie n'est envoyée) ----
   if (!/^exerciseurs\//.test(page)) return;
   var chapitre = page.replace(/^exerciseurs\//, "").slice(0, 40), essais = {}, nbDefis = 0, modeDefi = "defi-classique";
@@ -106,8 +112,7 @@
     } catch (e) {}
   });
 
-  // ---- Question du niveau, une fois par année scolaire, sans bloquer la page ----
-  if (niveau) return;
+  // ---- Bandeau de la question du niveau, une fois par année scolaire, sans bloquer la page ----
   function poser() {
     if (document.getElementById("se-niveau")) return;
     var st = document.createElement("style");
@@ -133,5 +138,4 @@
     });
     document.head.appendChild(st); document.body.appendChild(box);
   }
-  setTimeout(poser, 4000);
 })();
