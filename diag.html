@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>Diagnostic du navigateur</title>
+<style>body{font:16px/1.5 system-ui,sans-serif;max-width:640px;margin:0 auto;padding:16px;background:#fff;color:#111}li{margin:.4em 0}
+.ok{color:#0a7a2f;font-weight:600}.ko{color:#b00020;font-weight:600}button{font:inherit;padding:8px 14px;margin:4px 0}</style></head>
+<body><h1>Diagnostic du navigateur</h1><p>Page temporaire : elle n'envoie rien. Fais une capture et envoie-la.</p><ol id="r"></ol>
+<p><button id="raz">Effacer ma réponse « classe » sur ce navigateur</button></p>
+<script>
+(function(){
+  var r=document.getElementById("r");
+  function l(t,ok){var li=document.createElement("li");li.innerHTML=t+(ok===undefined?"":ok?' <span class="ok">OK</span>':' <span class="ko">BLOQUE</span>');r.appendChild(li);}
+  l("Navigateur : "+navigator.userAgent.replace(/</g,""));
+  l("« Ne pas me suivre » (DNT) : "+(navigator.doNotTrack||window.doNotTrack||"non défini"),!(navigator.doNotTrack==="1"||window.doNotTrack==="1"));
+  l("Global Privacy Control (GPC) : "+(navigator.globalPrivacyControl?"ACTIVÉ":"non"),!navigator.globalPrivacyControl);
+  var ls="?";try{ls=localStorage.getItem("se_niveau")||"aucune";}catch(e){ls="stockage interdit ("+e.name+")";}
+  l("Réponse « classe » déjà enregistrée : "+ls.replace(/</g,""));
+  var s=document.createElement("script");s.src="suivi.js?v=diag"+Date.now();
+  s.onload=function(){setTimeout(function(){l("suivi.js chargé ; démarré : "+(typeof window.suiviExo==="function"?"oui":"NON (arrêté au début : DNT/GPC)"),typeof window.suiviExo==="function");},300);};
+  s.onerror=function(){l("suivi.js : chargement BLOQUÉ (bloqueur de publicité ou protection du navigateur)",false);};
+  document.head.appendChild(s);
+  document.getElementById("raz").onclick=function(){try{localStorage.removeItem("se_niveau");}catch(e){}this.textContent="Effacé — rouvre un exerciseur";};
+})();
+</script></body></html>
