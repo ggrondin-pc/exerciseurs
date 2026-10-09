@@ -33,3 +33,19 @@ try {
            1049 => "nom de base inconnu (vérifier le préfixe)", 2002 => "hôte injoignable (essayer localhost)", 1142 => "droit CREATE manquant"];
   echo "ERREUR base de données, code $code : " . ($aide[(int)$code] ?? "voir le code") . "\n";
 }
+
+// Essai automatique d'autres adresses de serveur MySQL (aucun mot de passe affiché)
+echo "\nEssais d'autres adresses :\n";
+$cands = ['localhost', '127.0.0.1', (string)ini_get('mysqli.default_host'), (string)ini_get('pdo_mysql.default_socket'), (string)ini_get('mysqli.default_socket'),
+          '/var/lib/mysql/mysql.sock', '/var/run/mysqld/mysqld.sock', '/tmp/mysql.sock', '/run/mysqld/mysqld.sock'];
+foreach (array_unique(array_filter($cands)) as $h) {
+  $dsn = ($h[0] === '/') ? 'mysql:unix_socket=' . $h : 'mysql:host=' . $h;
+  try {
+    new PDO($dsn . ';dbname=' . $c['db_nom'] . ';charset=utf8mb4', $c['db_user'], $c['db_mdp'], [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 3]);
+    echo "  $h : CONNEXION OK  <-- à mettre dans db_hote\n";
+  } catch (Throwable $t) {
+    $code = ($t instanceof PDOException && isset($t->errorInfo[1])) ? $t->errorInfo[1] : $t->getCode();
+    echo "  $h : échec (code $code)\n";
+  }
+}
+echo "Réglage db_hote actuel : " . (in_array($c['db_hote'], ['localhost', '127.0.0.1'], true) ? $c['db_hote'] : 'autre valeur') . "\n";
