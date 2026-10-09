@@ -10,12 +10,12 @@
   var r=document.getElementById("r");
   function l(t,ok){var li=document.createElement("li");li.innerHTML=t+(ok===undefined?"":ok?' <span class="ok">OK</span>':' <span class="ko">BLOQUE</span>');r.appendChild(li);}
   l("Navigateur : "+navigator.userAgent.replace(/</g,""));
-  l("« Ne pas me suivre » (DNT) : "+(navigator.doNotTrack||window.doNotTrack||"non défini"),!(navigator.doNotTrack==="1"||window.doNotTrack==="1"));
+  l("« Ne pas me suivre » (DNT, sans effet sur le site) : "+(navigator.doNotTrack||window.doNotTrack||"non défini"));
   l("Global Privacy Control (GPC) : "+(navigator.globalPrivacyControl?"ACTIVÉ":"non"),!navigator.globalPrivacyControl);
   var ls="?";try{ls=localStorage.getItem("se_niveau")||"aucune";}catch(e){ls="stockage interdit ("+e.name+")";}
   l("Réponse « classe » déjà enregistrée : "+ls.replace(/</g,""));
   var s=document.createElement("script");s.src="suivi.js?v=diag"+Date.now();
-  s.onload=function(){setTimeout(function(){l("suivi.js chargé ; démarré : "+(typeof window.suiviExo==="function"?"oui":"NON (arrêté au début : DNT/GPC)"),typeof window.suiviExo==="function");},300);};
+  s.onload=function(){setTimeout(function(){l("suivi.js chargé ; démarré : "+(typeof window.suiviExo==="function"?"oui":"NON (arrêté au début : GPC)"),typeof window.suiviExo==="function");},300);};
   s.onerror=function(){l("suivi.js : chargement BLOQUÉ (bloqueur de publicité ou protection du navigateur)",false);};
   document.head.appendChild(s);
   document.getElementById("raz").onclick=function(){try{localStorage.removeItem("se_niveau");}catch(e){}this.textContent="Effacé — rouvre un exerciseur";};

@@ -8,7 +8,9 @@
   "use strict";
   var COLLECTEUR = "https://scienceexotic.fr/api/collecte.php";
   var POSTHOG_CLE = "";            // clé publique PostHog (phc_…) : vide = PostHog désactivé
-  if (navigator.globalPrivacyControl || navigator.doNotTrack === "1" || window.doNotTrack === "1") return;
+  // Décision de Guillaume (10/10/2026) : le signal GPC est respecté ; « Ne pas suivre » (DNT, souvent activé par défaut) ne l'est plus,
+  // puisque la mesure est anonyme (exemption CNIL). Voir confidentialite.html.
+  if (navigator.globalPrivacyControl) return;
 
   var page = (/github\.io$/.test(location.hostname) ? location.pathname.replace(/^\/exerciseurs\//, "/") : location.pathname).replace(/^\/+/, "").replace(/\.html$/, "") || "accueil";
   page = page.toLowerCase().replace(/[^a-z0-9_\/.-]/g, "").slice(0, 80) || "accueil";
