@@ -1,5 +1,5 @@
 # Copie automatique du site vers l'hébergement LWS (scienceexotic.fr) à chaque publication.
-# Étape d'essai : le site est copié dans le dossier /essai-deploiement/ du serveur, pas encore à la racine.
+# Le site est copié à la racine du serveur : https://scienceexotic.fr (essai réussi le 09/10 dans /essai-deploiement/).
 # Le mot de passe FTP est rangé dans les secrets du dépôt (FTP_PASSWORD) : il n'apparaît nulle part ailleurs.
 # Compte FTP conseillé : un compte dédié, limité au dossier du site (créé dans cPanel), pas le compte principal.
 name: Deploiement LWS
@@ -43,7 +43,7 @@ jobs:
           protocol: ftps
           port: 21
           local-dir: ./
-          server-dir: /essai-deploiement/
+          server-dir: /
           exclude: |
             **/.git*
             **/.git*/**
