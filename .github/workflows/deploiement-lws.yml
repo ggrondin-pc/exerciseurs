@@ -1,6 +1,7 @@
 # Copie automatique du site vers l'hébergement LWS (scienceexotic.fr) à chaque publication.
 # Étape d'essai : le site est copié dans le dossier /essai-deploiement/ du serveur, pas encore à la racine.
 # Le mot de passe FTP est rangé dans les secrets du dépôt (FTP_PASSWORD) : il n'apparaît nulle part ailleurs.
+# Compte FTP conseillé : un compte dédié, limité au dossier du site (créé dans cPanel), pas le compte principal.
 name: Deploiement LWS
 
 on:
@@ -34,7 +35,7 @@ jobs:
 
       - name: Copier vers LWS (FTPS)
         if: steps.verif.outputs.pret == 'oui'
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@8e83cea8672e3fbcbb9fdafff34debf6ae4c5f65  # v4.3.5, version figée
         with:
           server: ftp.scienceexotic.fr
           username: scien2881468
