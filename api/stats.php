@@ -72,7 +72,7 @@ $depuis = $p === 'tout' ? '2000-01-01' : gmdate('Y-m-d', time() - ((int)$p - 1) 
 
 $db = new PDO('mysql:host=' . $c['db_hote'] . ';dbname=' . $c['db_nom'] . ';charset=utf8mb4', $c['db_user'], $c['db_mdp'],
               [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 3]);
-$q = $db->prepare('SELECT jour, evenement, dims, n FROM compteurs WHERE jour >= ? ORDER BY jour');
+$q = $db->prepare('SELECT jour, evenement, dims, n, somme FROM compteurs WHERE jour >= ? ORDER BY jour');
 $q->execute([$depuis]);
 
 $LIEUX = ['Indian/Reunion' => 'La Réunion', 'Indian/Mauritius' => 'Maurice', 'Indian/Mayotte' => 'Mayotte', 'Indian/Antananarivo' => 'Madagascar',
@@ -83,18 +83,33 @@ $LIEUX = ['Indian/Reunion' => 'La Réunion', 'Indian/Mauritius' => 'Maurice', 'I
   'Africa/Casablanca' => 'Maroc', 'Africa/Algiers' => 'Algérie', 'Africa/Tunis' => 'Tunisie', 'Africa/Dakar' => 'Sénégal', 'Africa/Abidjan' => 'Côte d\'Ivoire',
   'UTC' => 'Inconnu (fuseau masqué)', 'Etc/UTC' => 'Inconnu (fuseau masqué)', '' => 'Inconnu'];
 $parJour = []; $pages = []; $lieux = []; $app = []; $src = []; $retour = []; $ecart = []; $duree = []; $robots = []; $rejets = [];
-$vues = 0;
+$vues = 0; $niveaux = []; $exoChap = []; $exoItem = []; $defis = [];
+$NIV = ['6e' => '6e', '5e' => '5e', '4e' => '4e', '3e' => '3e', 'lycee' => 'Lycée', 'adulte' => 'Adulte', 'enseignant' => 'Enseignant(e)', 'primaire' => 'Primaire', 'inconnu' => 'Non indiqué'];
+$fn = (string)($_GET['n'] ?? ''); if (!isset($NIV[$fn])) $fn = '';
 foreach ($q as $l) {
   $d = json_decode($l['dims'], true) ?: []; $n = (int)$l['n'];
   if (isset($d['page']) && strpos($d['page'], 'test-') === 0) continue;   // lignes d'essai du 09/10/2026
+  if ($fn !== '' && in_array($l['evenement'], ['vue', 'exo'], true) && ($d['niveau'] ?? 'inconnu') !== $fn) continue;
   switch ($l['evenement']) {
     case 'vue':
       $vues += $n; $parJour[$l['jour']] = ($parJour[$l['jour']] ?? 0) + $n;
       $pages[$d['page'] ?? '?'] = ($pages[$d['page'] ?? '?'] ?? 0) + $n;
       $tz = $d['tz'] ?? ''; $lieu = $LIEUX[$tz] ?? str_replace('_', ' ', $tz);
       $lieux[$lieu] = ($lieux[$lieu] ?? 0) + $n;
+      $nk = $NIV[$d['niveau'] ?? 'inconnu'] ?? 'Non indiqué'; $niveaux[$nk] = ($niveaux[$nk] ?? 0) + $n;
       foreach (['appareil' => &$app, 'source' => &$src, 'retour' => &$retour, 'ecart' => &$ecart] as $k => &$t) { $v = $d[$k] ?? '?'; $t[$v] = ($t[$v] ?? 0) + $n; }
       unset($t);
+      break;
+    case 'exo':
+      $ch = $d['chapitre'] ?? '?'; $som = (float)($l['somme'] ?? 0); $ok = ($d['maitrise'] ?? '') === 'oui' ? $n : 0;
+      if (($d['exercice'] ?? '') === 'defi') {
+        $cle = $ch . ' · ' . (($d['mode'] ?? '') === 'defi-expert' ? 'expert' : 'classique');
+        $defis[$cle] = ['n' => ($defis[$cle]['n'] ?? 0) + $n, 's' => ($defis[$cle]['s'] ?? 0) + $som, 'ok' => ($defis[$cle]['ok'] ?? 0) + $ok];
+      } else {
+        $exoChap[$ch] = ['n' => ($exoChap[$ch]['n'] ?? 0) + $n, 's' => ($exoChap[$ch]['s'] ?? 0) + $som, 'ok' => ($exoChap[$ch]['ok'] ?? 0) + $ok];
+        $it = $ch . ' · ' . ($d['exercice'] ?? '?');
+        $exoItem[$it] = ['n' => ($exoItem[$it]['n'] ?? 0) + $n, 's' => ($exoItem[$it]['s'] ?? 0) + $som, 'ok' => ($exoItem[$it]['ok'] ?? 0) + $ok];
+      }
       break;
     case 'duree': $v = $d['tranche'] ?? '?'; $duree[$v] = ($duree[$v] ?? 0) + $n; break;
     case 'robot': $v = $d['famille'] ?? '?'; $robots[$v] = ($robots[$v] ?? 0) + $n; break;
@@ -117,6 +132,21 @@ function liste(array $t, array $libelles = [], array $ordre = [], int $max = 12)
   return $r . '</table>';
 }
 
+function tableExo(array $t, string $col3, bool $sur20 = false, int $max = 15): string {
+  if (!$t) return '<p class="vide">Rien pour cette période.</p>';
+  $r = '<table><tr><td class="lib"><small>' . '</small></td><td class="nb"><small>essais</small></td><td class="nb"><small>réussis</small></td><td class="nb"><small>' . h($col3) . '</small></td></tr>'; $i = 0;
+  foreach ($t as $k => $v) {
+    if (++$i > $max) break;
+    $moy = $v['n'] ? $v['s'] / $v['n'] : 0;
+    $r .= '<tr><td class="lib">' . h($k) . '</td><td class="nb">' . $v['n'] . '</td><td class="nb">' . round(100 * $v['ok'] / max(1, $v['n'])) . ' %</td><td class="nb">'
+        . ($sur20 ? round($moy / 5, 1) . ' / 20' : round($moy) . ' %') . '</td></tr>';
+  }
+  return $r . '</table>';
+}
+ksort($exoChap); ksort($defis);
+$difficiles = array_filter($exoItem, fn($v) => $v['n'] >= 3);
+uasort($difficiles, fn($a, $b) => ($a['ok'] / $a['n']) <=> ($b['ok'] / $b['n']));
+
 // courbe des vues par jour (barres), jours sans visite inclus
 $debutJ = $p === 'tout' ? ($parJour ? array_key_first($parJour) : gmdate('Y-m-d')) : $depuis;
 $jours = []; for ($t = strtotime($debutJ . ' UTC'); $t <= time(); $t += 86400) $jours[gmdate('Y-m-d', $t)] = $parJour[gmdate('Y-m-d', $t)] ?? 0;
@@ -133,7 +163,9 @@ foreach ($jours as $j => $v) {
 $svg .= '<text x="2" y="20">max ' . $mx . '</text></svg>';
 
 $habitues = $retour['habitue'] ?? 0; $nouveaux = $retour['nouveau'] ?? 0;
-$nav = '<nav>'; foreach ($PERIODES as $k => $lib) $nav .= '<a href="?p=' . $k . '"' . ($k === $p ? ' class="actif"' : '') . '>' . $lib . '</a>'; $nav .= '</nav>';
+$nav = '<nav>'; foreach ($PERIODES as $k => $lib) $nav .= '<a href="?p=' . $k . ($fn !== '' ? '&amp;n=' . $fn : '') . '"' . ($k === $p ? ' class="actif"' : '') . '>' . $lib . '</a>'; $nav .= '</nav><nav><a href="?p=' . $p . '"' . ($fn === '' ? ' class="actif"' : '') . '>Toutes classes</a>';
+foreach ($NIV as $k => $lib) if ($k !== 'primaire') $nav .= '<a href="?p=' . $p . '&amp;n=' . $k . '"' . ($k === $fn ? ' class="actif"' : '') . '>' . h($lib) . '</a>';
+$nav .= '</nav>';
 
 $corps = '<h1>Statistiques du site</h1><p class="sous">scienceexotic.fr · anonymes · jours comptés en heure de Greenwich (La Réunion : +4 h)</p>' . $nav
  . '<div class="tuiles"><div class="tuile"><b>' . $vues . '</b><span>pages vues</span></div>'
@@ -142,6 +174,10 @@ $corps = '<h1>Statistiques du site</h1><p class="sous">scienceexotic.fr · anony
  . '<div class="tuile"><b>' . array_sum($robots) . '</b><span>passages de robots</span></div></div>'
  . '<div class="carte"><h2>Pages vues par jour</h2>' . $svg . '<p class="note">Touchez ou survolez une barre pour voir le chiffre du jour.</p></div>'
  . '<div class="carte"><h2>Pages les plus vues</h2>' . liste($pages, [], [], 15) . '</div>'
+ . '<div class="carte"><h2>Classe déclarée (pages vues)</h2>' . liste($niveaux) . '<p class="note">Question posée une fois par année scolaire dans les exerciseurs ; facultative.</p></div>'
+ . '<div class="carte"><h2>Exercices vérifiés, par chapitre</h2>' . tableExo($exoChap, 'score moyen') . '<p class="note">« Réussis » = tout juste au moment de cliquer sur Vérifier. Un même élève peut vérifier plusieurs fois.</p></div>'
+ . '<div class="carte"><h2>Exercices les plus difficiles</h2>' . tableExo($difficiles, 'score moyen', false, 10) . '<p class="note">Au moins 3 vérifications. o0 = Découverte, o1… = Outil 1…, plus = Pour aller plus loin ; le chiffre final = rang de l\'exercice dans l\'onglet.</p></div>'
+ . '<div class="carte"><h2>Défis</h2>' . tableExo($defis, 'note moyenne', true) . '<p class="note">« Réussis » = au moins 15 / 20.</p></div>'
  . '<div class="carte"><h2>D\'où viennent les visiteurs</h2>' . liste($lieux) . '<p class="note">Déduit du fuseau horaire de l\'appareil (pas d\'adresse IP) : territoire ou pays, pas la ville.</p></div>'
  . '<div class="carte"><h2>Temps passé sur une page</h2>' . liste($duree, ['0-10s' => 'moins de 10 s', '10-30s' => '10 à 30 s', '30s-2min' => '30 s à 2 min', '2-10min' => '2 à 10 min', '10min+' => 'plus de 10 min'], ['0-10s', '10-30s', '30s-2min', '2-10min', '10min+']) . '</div>'
  . '<div class="carte"><h2>Retour sur le site</h2>' . liste($ecart, ['premiere' => 'première visite', '0j' => 'le même jour', '1j' => 'le lendemain', '2-7j' => '2 à 7 jours après', '8-30j' => '8 à 30 jours après', '30j+' => 'plus d\'un mois après'], ['premiere', '0j', '1j', '2-7j', '8-30j', '30j+']) . '</div>'
