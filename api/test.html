@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>Test du collecteur</title>
+<style>body{font:16px/1.5 system-ui,sans-serif;max-width:640px;margin:0 auto;padding:16px;background:#fff;color:#111}
+li{margin:.4em 0}.ok{color:#0a7a2f;font-weight:600}.ko{color:#b00020;font-weight:600}code{background:#eee;padding:0 4px}</style></head>
+<body><h1>Test du collecteur</h1>
+<p>Page temporaire. Elle envoie un seul événement d'essai (page « test-diagnostic ») et affiche ce que répond le serveur. Rien de personnel n'est envoyé.</p>
+<ol id="r"></ol>
+<p>Envoie une capture de cette page, puis recharge <a href="diagnostic.php">diagnostic.php</a>.</p>
+<script>
+(function(){
+  var r=document.getElementById("r");
+  function ligne(t,ok){var li=document.createElement("li");li.innerHTML=t+(ok===undefined?"":ok?' <span class="ok">OK</span>':' <span class="ko">PROBLÈME</span>');r.appendChild(li);}
+  var dnt=navigator.doNotTrack==="1"||window.doNotTrack==="1", gpc=!!navigator.globalPrivacyControl;
+  ligne("Navigateur « ne pas me suivre » (DNT) : "+(dnt?"ACTIVÉ → suivi.js n'envoie rien depuis ce navigateur":"non"),!dnt);
+  ligne("Contrôle de confidentialité (GPC) : "+(gpc?"ACTIVÉ → suivi.js n'envoie rien depuis ce navigateur":"non"),!gpc);
+  ligne("Adresse de cette page : <code>"+location.host+"</code>");
+  fetch("/suivi.js",{cache:"no-store"}).then(function(x){ligne("Fichier suivi.js en ligne : code "+x.status,x.ok);})
+    .catch(function(e){ligne("Fichier suivi.js en ligne : bloqué ("+e.message+") → bloqueur de publicité probable",false);});
+  fetch("/index.html",{cache:"no-store"}).then(function(x){return x.text();}).then(function(t){
+    ligne("La page d'accueil appelle suivi.js : "+(t.indexOf("suivi.js")>=0?"oui":"NON (ancienne version en ligne)"),t.indexOf("suivi.js")>=0);}).catch(function(){});
+  var corps=JSON.stringify({e:"vue",d:{page:"test-diagnostic",tz:"test",retour:"nouveau",ecart:"premiere",appareil:"ordi",source:"direct"}});
+  fetch("collecte.php",{method:"POST",body:corps,headers:{"Content-Type":"text/plain"},cache:"no-store"})
+    .then(function(x){return x.text().then(function(t){
+      var aide={204:"enregistré",400:"message refusé",403:"origine refusée",405:"méthode refusée",500:"erreur de la base",503:"config.php absent"}[x.status]||"réponse inattendue (pare-feu de l'hébergeur ?)";
+      ligne("Envoi d'essai (fetch) : code "+x.status+" — "+aide+(t&&x.status!==204?"<br><small>"+t.slice(0,200).replace(/</g,"&lt;")+"</small>":""),x.status===204);});})
+    .catch(function(e){ligne("Envoi d'essai (fetch) : bloqué avant le serveur ("+e.message+") → bloqueur ou extension",false);});
+  try{var b=navigator.sendBeacon&&navigator.sendBeacon("collecte.php",new Blob([corps.replace("test-diagnostic","test-beacon")],{type:"text/plain"}));
+    ligne("Envoi d'essai (sendBeacon, méthode utilisée par le site) : "+(b?"accepté par le navigateur":"REFUSÉ par le navigateur"),!!b);}
+  catch(e){ligne("sendBeacon : erreur "+e.message,false);}
+})();
+</script></body></html>

@@ -27,6 +27,9 @@ try {
   echo "Table compteurs : OK\n";
   $n = $db->query('SELECT COUNT(*), IFNULL(SUM(n),0) FROM compteurs')->fetch(PDO::FETCH_NUM);
   echo "Lignes : {$n[0]} · événements comptés : {$n[1]}\n";
+  echo "\nDétail des 3 derniers jours (événement, étiquettes, nombre) :\n";
+  foreach ($db->query("SELECT jour, evenement, dims, n FROM compteurs WHERE jour >= UTC_DATE() - INTERVAL 2 DAY ORDER BY jour DESC, evenement, n DESC LIMIT 60") as $l)
+    echo "  {$l['jour']}  {$l['evenement']}  {$l['dims']}  × {$l['n']}\n";
 } catch (Throwable $t) {
   $code = ($t instanceof PDOException && isset($t->errorInfo[1])) ? $t->errorInfo[1] : $t->getCode();
   $aide = [1045 => "utilisateur ou mot de passe refusé", 1044 => "l'utilisateur n'a pas les droits sur cette base (ajouter « Tous les privilèges »)",

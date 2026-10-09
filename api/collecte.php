@@ -20,11 +20,44 @@ if ($origine !== '' && in_array($origine, $ORIGINES, true)) {
 }
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') { http_response_code(204); exit; }
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') { http_response_code(405); exit; }
-if ($origine !== '' && !in_array($origine, $ORIGINES, true)) { http_response_code(403); exit; }
+
+// ---- enregistrement : un compteur par jour, événement et combinaison d'étiquettes ------------
+function enregistrer(string $ev, array $dims, ?float $valeur, int $code_ok): void {
+  ksort($dims);
+  $dims_json = json_encode($dims, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+  $fc = __DIR__ . '/config.php';
+  if (!is_file($fc)) { http_response_code(503); exit; }
+  $c = require $fc;
+  try {
+    $db = new PDO('mysql:host=' . $c['db_hote'] . ';dbname=' . $c['db_nom'] . ';charset=utf8mb4', $c['db_user'], $c['db_mdp'],
+                  [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 3]);
+    $db->exec('CREATE TABLE IF NOT EXISTS compteurs (
+        jour DATE NOT NULL, evenement VARCHAR(16) NOT NULL, cle CHAR(40) NOT NULL, dims VARCHAR(600) NOT NULL,
+        n INT UNSIGNED NOT NULL DEFAULT 0, somme DOUBLE NULL, somme2 DOUBLE NULL, mini DOUBLE NULL, maxi DOUBLE NULL,
+        PRIMARY KEY (jour, evenement, cle)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+    $q = $db->prepare('INSERT INTO compteurs (jour, evenement, cle, dims, n, somme, somme2, mini, maxi)
+        VALUES (UTC_DATE(), :e, :k, :d, 1, :v, :v2, :v3, :v4)
+        ON DUPLICATE KEY UPDATE n = n + 1,
+          somme  = IF(VALUES(somme) IS NULL, somme, IFNULL(somme, 0) + VALUES(somme)),
+          somme2 = IF(VALUES(somme2) IS NULL, somme2, IFNULL(somme2, 0) + VALUES(somme2)),
+          mini   = IF(VALUES(mini) IS NULL, mini, LEAST(IFNULL(mini, VALUES(mini)), VALUES(mini))),
+          maxi   = IF(VALUES(maxi) IS NULL, maxi, GREATEST(IFNULL(maxi, VALUES(maxi)), VALUES(maxi)))');
+    $q->execute([':e' => $ev, ':k' => sha1($dims_json), ':d' => $dims_json,
+                 ':v' => $valeur, ':v2' => $valeur === null ? null : $valeur * $valeur, ':v3' => $valeur, ':v4' => $valeur]);
+    http_response_code($code_ok);
+  } catch (Throwable $t) {
+    http_response_code(500);
+  }
+  exit;
+}
+// Un envoi refusé est compté avec son seul motif (aucune autre information), pour repérer les blocages.
+function refuser(string $motif, int $code): void { enregistrer('rejet', ['motif' => $motif], null, $code); }
+
+if ($origine !== '' && !in_array($origine, $ORIGINES, true)) refuser('origine', 403);
 
 $brut = file_get_contents('php://input', false, null, 0, 2048);
 $msg = json_decode($brut ?: '', true);
-if (!is_array($msg)) { http_response_code(400); exit; }
+if (!is_array($msg)) refuser($brut === '' || $brut === false ? 'corps-vide' : 'json', 400);
 
 // ---- liste blanche des événements et de leurs étiquettes -------------------------------
 $MOT  = '/^[a-z0-9_.-]{1,40}$/';
@@ -49,7 +82,7 @@ if (preg_match('/(gptbot|claudebot|anthropic|perplexity|ccbot|bytespider|googleb
   $ev = 'robot';
   $dims = ['famille' => strtolower(preg_replace('/[^a-z0-9]/i', '', $m[1]))];
 } else {
-  if (!isset($EVENEMENTS[$ev])) { http_response_code(400); exit; }
+  if (!isset($EVENEMENTS[$ev])) refuser('evenement', 400);
   $dims = [];
   foreach ($EVENEMENTS[$ev] as $cle => $regle) {
     if (!isset($dims_in[$cle]) || !is_scalar($dims_in[$cle])) continue;
@@ -58,31 +91,5 @@ if (preg_match('/(gptbot|claudebot|anthropic|perplexity|ccbot|bytespider|googleb
     if ($ok) $dims[$cle] = $val;
   }
 }
-ksort($dims);
-$dims_json = json_encode($dims, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 $valeur = (isset($msg['v']) && is_numeric($msg['v']) && $ev === 'exo') ? max(0.0, min(100.0, (float)$msg['v'])) : null;
-
-// ---- enregistrement ---------------------------------------------------------------------
-$fc = __DIR__ . '/config.php';
-if (!is_file($fc)) { http_response_code(503); exit; }
-$c = require $fc;
-try {
-  $db = new PDO('mysql:host=' . $c['db_hote'] . ';dbname=' . $c['db_nom'] . ';charset=utf8mb4', $c['db_user'], $c['db_mdp'],
-                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 3]);
-  $db->exec('CREATE TABLE IF NOT EXISTS compteurs (
-      jour DATE NOT NULL, evenement VARCHAR(16) NOT NULL, cle CHAR(40) NOT NULL, dims VARCHAR(600) NOT NULL,
-      n INT UNSIGNED NOT NULL DEFAULT 0, somme DOUBLE NULL, somme2 DOUBLE NULL, mini DOUBLE NULL, maxi DOUBLE NULL,
-      PRIMARY KEY (jour, evenement, cle)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
-  $q = $db->prepare('INSERT INTO compteurs (jour, evenement, cle, dims, n, somme, somme2, mini, maxi)
-      VALUES (UTC_DATE(), :e, :k, :d, 1, :v, :v2, :v, :v)
-      ON DUPLICATE KEY UPDATE n = n + 1,
-        somme  = IF(VALUES(somme) IS NULL, somme, IFNULL(somme, 0) + VALUES(somme)),
-        somme2 = IF(VALUES(somme2) IS NULL, somme2, IFNULL(somme2, 0) + VALUES(somme2)),
-        mini   = IF(VALUES(mini) IS NULL, mini, LEAST(IFNULL(mini, VALUES(mini)), VALUES(mini))),
-        maxi   = IF(VALUES(maxi) IS NULL, maxi, GREATEST(IFNULL(maxi, VALUES(maxi)), VALUES(maxi)))');
-  $q->execute([':e' => $ev, ':k' => sha1($dims_json), ':d' => $dims_json,
-               ':v' => $valeur, ':v2' => $valeur === null ? null : $valeur * $valeur]);
-  http_response_code(204);
-} catch (Throwable $t) {
-  http_response_code(500);
-}
+enregistrer($ev, $dims, $valeur, 204);
