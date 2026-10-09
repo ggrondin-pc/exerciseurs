@@ -1,0 +1,50 @@
+# Copie automatique du site vers l'hébergement LWS (scienceexotic.fr) à chaque publication.
+# Étape d'essai : le site est copié dans le dossier /essai-deploiement/ du serveur, pas encore à la racine.
+# Le mot de passe FTP est rangé dans les secrets du dépôt (FTP_PASSWORD) : il n'apparaît nulle part ailleurs.
+name: Deploiement LWS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploiement-lws
+  cancel-in-progress: false
+
+jobs:
+  copie:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vérifier que le mot de passe FTP est rangé dans GitHub
+        id: verif
+        env:
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          if [ -z "$FTP_PASSWORD" ]; then
+            echo "Secret FTP_PASSWORD absent : copie ignorée."
+            echo "pret=non" >> "$GITHUB_OUTPUT"
+          else
+            echo "pret=oui" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Récupérer le site
+        if: steps.verif.outputs.pret == 'oui'
+        uses: actions/checkout@v4
+
+      - name: Copier vers LWS (FTPS)
+        if: steps.verif.outputs.pret == 'oui'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ftp.scienceexotic.fr
+          username: scien2881468
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./
+          server-dir: /essai-deploiement/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            .github/**
+            README.md
