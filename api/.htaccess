@@ -1,0 +1,5 @@
+# Interdit l'accès direct aux réglages et aux fichiers techniques
+<FilesMatch "^(config\.php|config\.exemple\.php|.*\.sql|.*\.log)$">
+  Require all denied
+</FilesMatch>
+Options -Indexes
