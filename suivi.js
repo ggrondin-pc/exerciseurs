@@ -7,7 +7,7 @@
 (function () {
   "use strict";
   var COLLECTEUR = "https://scienceexotic.fr/api/collecte.php";
-  var POSTHOG_CLE = "";            // clé publique PostHog (phc_…) : vide = PostHog désactivé
+  var POSTHOG_CLE = "phc_C3NrbK5C7n4Mc7F3d2JoQ8xcAroQff3LVGUFQJRLWiAS";   // clé publique PostHog UE (faite pour être visible) ; "" = désactivé
   // Décision de Guillaume (10/10/2026) : le signal GPC est respecté ; « Ne pas suivre » (DNT, souvent activé par défaut) ne l'est plus,
   // puisque la mesure est anonyme (exemption CNIL). Voir confidentialite.html.
   if (navigator.globalPrivacyControl) return;
@@ -41,10 +41,14 @@
     if (POSTHOG_CLE && window.posthog) { try { window.posthog.capture(e, Object.assign({ valeur: v }, d)); } catch (err) {} }
   }
 
-  if (POSTHOG_CLE) {   // PostHog UE, sans cookie ni identifiant persistant (chargé seulement si une clé est fournie)
-    var s = document.createElement("script"); s.async = true; s.src = "https://eu-assets.i.posthog.com/static/array.js";
-    s.onload = function () { try { window.posthog.init(POSTHOG_CLE, { api_host: "https://eu.i.posthog.com", persistence: "memory", disable_session_recording: true, autocapture: false, capture_pageview: false, ip: false }); } catch (e) {} };
-    document.head.appendChild(s);
+  if (POSTHOG_CLE) {   // PostHog UE : sans cookie (mémoire seulement), sans profil de personne, sans capture automatique ni enregistrement
+    try {
+      /* chargeur officiel PostHog (file d'attente en attendant le script) */
+      !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+      window.posthog.init(POSTHOG_CLE, { api_host: "https://eu.i.posthog.com", persistence: "memory", person_profiles: "identified_only",
+        autocapture: false, capture_pageview: false, capture_pageleave: false, disable_session_recording: true, disable_surveys: true,
+        advanced_disable_feature_flags: true, ip: false });
+    } catch (e) {}
   }
 
   // Niveau déclaré par le visiteur (facultatif), redemandé à chaque rentrée scolaire (après le 15 août).
