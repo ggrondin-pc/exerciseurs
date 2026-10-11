@@ -16,6 +16,8 @@
   page = page.toLowerCase().replace(/[^a-z0-9_\/.-]/g, "").slice(0, 80) || "accueil";
   if (/^admin/.test(page)) return;   // l'espace professeur n'est pas mesuré
 
+  // Site d'origine : scienceexotic.fr (LWS) ou copie GitHub Pages, pour séparer les deux dans les statistiques
+  var site = /github\.io$/.test(location.hostname) ? "github" : /scienceexotic\./.test(location.hostname) ? "lws" : "autre";
   var JOUR = 864e5, maintenant = Date.now(), etat = null;
   try { etat = JSON.parse(localStorage.getItem("se_suivi") || "null"); } catch (e) {}
   if (!etat || !etat.p || maintenant - etat.p > 395 * JOUR) etat = null;      // 13 mois maximum
@@ -61,19 +63,19 @@
     if (nv && nv.n && nv.t >= rentree.getTime()) niveau = nv.n;
   } catch (e) {}
 
-  envoyer("vue", { page: page, tz: tz, retour: retour, ecart: ecart, appareil: appareil, source: source, niveau: niveau || "inconnu" });
+  envoyer("vue", { site: site, page: page, tz: tz, retour: retour, ecart: ecart, appareil: appareil, source: source, niveau: niveau || "inconnu" });
 
   var debut = maintenant, fini = false;
   function fin() {
     if (fini) return; fini = true;
     var s = (Date.now() - debut) / 1000;
-    envoyer("duree", { page: page, tranche: s < 10 ? "0-10s" : s < 30 ? "10-30s" : s < 120 ? "30s-2min" : s < 600 ? "2-10min" : "10min+" });
+    envoyer("duree", { site: site, page: page, tranche: s < 10 ? "0-10s" : s < 30 ? "10-30s" : s < 120 ? "30s-2min" : s < 600 ? "2-10min" : "10min+" });
   }
   addEventListener("pagehide", fin);
   document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") fin(); });
 
   window.suiviExo = function (d, score) {
-    var x = { page: page, retour: retour, niveau: niveau || "inconnu" }; for (var k in d) x[k] = d[k];
+    var x = { site: site, page: page, retour: retour, niveau: niveau || "inconnu" }; for (var k in d) x[k] = d[k];
     envoyer("exo", x, typeof score === "number" ? Math.round(score) : undefined);
   };
 

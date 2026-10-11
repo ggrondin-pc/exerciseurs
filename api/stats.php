@@ -86,16 +86,22 @@ $parJour = []; $pages = []; $lieux = []; $app = []; $src = []; $retour = []; $ec
 $vues = 0; $niveaux = []; $exoChap = []; $exoItem = []; $defis = [];
 $NIV = ['6e' => '6e', '5e' => '5e', '4e' => '4e', '3e' => '3e', 'lycee' => 'Lycée', 'adulte' => 'Adulte', 'enseignant' => 'Enseignant(e)', 'primaire' => 'Primaire', 'inconnu' => 'Non indiqué'];
 $fn = (string)($_GET['n'] ?? ''); if (!isset($NIV[$fn])) $fn = '';
+$SITES = ['lws' => 'scienceexotic.fr', 'github' => 'GitHub Pages', 'autre' => 'Autre adresse', '?' => 'Non précisé (avant le 11/10/2026)'];
+$fs = (string)($_GET['s'] ?? ''); if (!isset($SITES[$fs])) $fs = '';
+$sites = [];
+function lien($p, string $n, string $s): string { $q = ['p' => (string)$p]; if ($n !== '') $q['n'] = $n; if ($s !== '') $q['s'] = $s; return '?' . h(http_build_query($q)); }
 foreach ($q as $l) {
   $d = json_decode($l['dims'], true) ?: []; $n = (int)$l['n'];
   if (isset($d['page']) && strpos($d['page'], 'test-') === 0) continue;   // lignes d'essai du 09/10/2026
   if ($fn !== '' && in_array($l['evenement'], ['vue', 'exo'], true) && ($d['niveau'] ?? 'inconnu') !== $fn) continue;
+  if ($fs !== '' && in_array($l['evenement'], ['vue', 'duree', 'exo'], true) && ($d['site'] ?? '?') !== $fs) continue;
   switch ($l['evenement']) {
     case 'vue':
       $vues += $n; $parJour[$l['jour']] = ($parJour[$l['jour']] ?? 0) + $n;
       $pages[$d['page'] ?? '?'] = ($pages[$d['page'] ?? '?'] ?? 0) + $n;
       $tz = $d['tz'] ?? ''; $lieu = $LIEUX[$tz] ?? str_replace('_', ' ', $tz);
       $lieux[$lieu] = ($lieux[$lieu] ?? 0) + $n;
+      $sk = $SITES[$d['site'] ?? '?'] ?? '?'; $sites[$sk] = ($sites[$sk] ?? 0) + $n;
       $nk = $NIV[$d['niveau'] ?? 'inconnu'] ?? 'Non indiqué'; $niveaux[$nk] = ($niveaux[$nk] ?? 0) + $n;
       foreach (['appareil' => &$app, 'source' => &$src, 'retour' => &$retour, 'ecart' => &$ecart] as $k => &$t) { $v = $d[$k] ?? '?'; $t[$v] = ($t[$v] ?? 0) + $n; }
       unset($t);
@@ -163,8 +169,11 @@ foreach ($jours as $j => $v) {
 $svg .= '<text x="2" y="20">max ' . $mx . '</text></svg>';
 
 $habitues = $retour['habitue'] ?? 0; $nouveaux = $retour['nouveau'] ?? 0;
-$nav = '<nav>'; foreach ($PERIODES as $k => $lib) $nav .= '<a href="?p=' . $k . ($fn !== '' ? '&amp;n=' . $fn : '') . '"' . ($k === $p ? ' class="actif"' : '') . '>' . $lib . '</a>'; $nav .= '</nav><nav><a href="?p=' . $p . '"' . ($fn === '' ? ' class="actif"' : '') . '>Toutes classes</a>';
-foreach ($NIV as $k => $lib) if ($k !== 'primaire') $nav .= '<a href="?p=' . $p . '&amp;n=' . $k . '"' . ($k === $fn ? ' class="actif"' : '') . '>' . h($lib) . '</a>';
+$nav = '<nav>'; foreach ($PERIODES as $k => $lib) $nav .= '<a href="' . lien($k, $fn, $fs) . '"' . ($k === $p ? ' class="actif"' : '') . '>' . $lib . '</a>'; $nav .= '</nav>';
+$nav .= '<nav><a href="' . lien($p, $fn, '') . '"' . ($fs === '' ? ' class="actif"' : '') . '>Les deux sites</a>';
+foreach (['lws', 'github'] as $k) $nav .= '<a href="' . lien($p, $fn, $k) . '"' . ($k === $fs ? ' class="actif"' : '') . '>' . h($SITES[$k]) . '</a>';
+$nav .= '</nav><nav><a href="' . lien($p, '', $fs) . '"' . ($fn === '' ? ' class="actif"' : '') . '>Toutes classes</a>';
+foreach ($NIV as $k => $lib) if ($k !== 'primaire') $nav .= '<a href="' . lien($p, $k, $fs) . '"' . ($k === $fn ? ' class="actif"' : '') . '>' . h($lib) . '</a>';
 $nav .= '</nav>';
 
 $corps = '<h1>Statistiques du site</h1><p class="sous">scienceexotic.fr · anonymes · jours comptés en heure de Greenwich (La Réunion : +4 h)</p>' . $nav
@@ -172,6 +181,7 @@ $corps = '<h1>Statistiques du site</h1><p class="sous">scienceexotic.fr · anony
  . '<div class="tuile"><b>' . ($ecart['premiere'] ?? 0) . '</b><span>nouveaux visiteurs (première page vue)</span></div>'
  . '<div class="tuile"><b>' . $habitues . '</b><span>pages vues par des habitués</span></div>'
  . '<div class="tuile"><b>' . array_sum($robots) . '</b><span>passages de robots</span></div></div>'
+ . '<div class="carte"><h2>Pages vues par site</h2>' . liste($sites) . '</div>'
  . '<div class="carte"><h2>Pages vues par jour</h2>' . $svg . '<p class="note">Touchez ou survolez une barre pour voir le chiffre du jour.</p></div>'
  . '<div class="carte"><h2>Pages les plus vues</h2>' . liste($pages, [], [], 15) . '</div>'
  . '<div class="carte"><h2>Classe déclarée (pages vues)</h2>' . liste($niveaux) . '<p class="note">Question posée une fois par année scolaire dans les exerciseurs ; facultative.</p></div>'

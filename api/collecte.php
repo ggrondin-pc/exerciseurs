@@ -64,12 +64,12 @@ $MOT  = '/^[a-z0-9_.-]{1,40}$/';
 $PAGE = '/^[a-z0-9_\/.-]{1,80}$/';
 $TZ   = '/^[A-Za-z_\/+-]{1,40}$/';
 $EVENEMENTS = [
-  'vue'   => ['page' => $PAGE, 'tz' => $TZ, 'retour' => ['nouveau', 'habitue'],
+  'vue'   => ['site' => ['lws', 'github', 'autre'], 'page' => $PAGE, 'tz' => $TZ, 'retour' => ['nouveau', 'habitue'],
               'ecart' => ['premiere', '0j', '1j', '2-7j', '8-30j', '30j+'],
               'appareil' => ['mobile', 'tablette', 'ordi'], 'source' => ['direct', 'interne', 'moteur', 'autre'],
               'niveau' => ['primaire', '6e', '5e', '4e', '3e', 'lycee', 'adulte', 'enseignant', 'inconnu']],
-  'duree' => ['page' => $PAGE, 'tranche' => ['0-10s', '10-30s', '30s-2min', '2-10min', '10min+']],
-  'exo'   => ['page' => $PAGE, 'niveau' => ['primaire', '6e', '5e', '4e', '3e', 'lycee', 'adulte', 'enseignant', 'inconnu'],
+  'duree' => ['site' => ['lws', 'github', 'autre'], 'page' => $PAGE, 'tranche' => ['0-10s', '10-30s', '30s-2min', '2-10min', '10min+']],
+  'exo'   => ['site' => ['lws', 'github', 'autre'], 'page' => $PAGE, 'niveau' => ['primaire', '6e', '5e', '4e', '3e', 'lycee', 'adulte', 'enseignant', 'inconnu'],
               'chapitre' => $MOT, 'exercice' => $MOT, 'mode' => $MOT, 'essai' => ['1', '2', '3', '4-5', '6+'],
               'maitrise' => ['oui', 'non'], 'retour' => ['nouveau', 'habitue'], 'frequence' => ['rare', 'hebdo', 'quotidien']],
 ];
