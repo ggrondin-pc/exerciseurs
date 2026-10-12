@@ -7,3 +7,5 @@
 Options -Indexes
 # Adresse inconnue : page « introuvable » du site, qui renvoie vers l'accueil
 ErrorDocument 404 /404.html
+# Dossier sans page d'accueil (ex. /exerciseurs/, /cours/) : même page, qui renvoie vers l'accueil
+ErrorDocument 403 /404.html
