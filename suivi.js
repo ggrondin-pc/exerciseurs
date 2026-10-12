@@ -43,6 +43,7 @@
     if (POSTHOG_CLE && window.posthog) { try { window.posthog.capture(e, Object.assign({ valeur: v }, d)); } catch (err) {} }
   }
 
+  if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) POSTHOG_CLE = "";   // essais locaux : pas d'envoi à PostHog
   if (POSTHOG_CLE) {   // PostHog UE : sans cookie (mémoire seulement), sans profil de personne ; pages vues et départs standard ($pageview/$pageleave, pour le tableau « Web analytics ») ; pas de capture des clics ni d'enregistrement
     try {
       /* chargeur officiel PostHog (file d'attente en attendant le script) */
