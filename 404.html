@@ -1,9 +1,30 @@
 <!DOCTYPE html>
 <!-- Guillaume Grondin - Enseignement Physique Chimie - Collège - Licence CC BY-NC-SA 4.0 -->
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Page introuvable</title>
+<title>Page introuvable · Exerciseurs de physique-chimie</title>
 <meta name="author" content="Guillaume Grondin - Enseignement Physique Chimie - Collège">
 <link rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr">
 <meta name="robots" content="noindex, nofollow">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap"><style>body{font:18px/1.5 Arial,sans-serif;margin:40px}</style><script src="suivi.js?v=20261012e" defer></script>
-</head><body><h1>Page introuvable</h1><p>Vérifiez l'adresse, ou <a href="javascript:history.back()">revenez à la page précédente</a>.</p></body></html>
+<style>
+:root{--fond:#E9EEF1;--carte:#fff;--encre:#16222E;--doux:#5A6B78;--marine:#1B3A5C}
+@media (prefers-color-scheme:dark){:root{--fond:#10171D;--carte:#18232C;--encre:#E4ECF1;--doux:#9AABB7;--marine:#9CC0E6}}
+body{margin:0;background:var(--fond);color:var(--encre);font:18px/1.5 "Atkinson Hyperlegible",system-ui,sans-serif}
+main{max-width:560px;margin:0 auto;padding:48px 16px;display:grid;gap:14px}
+h1{font-size:1.6rem;margin:0;color:var(--marine)}p{margin:0;color:var(--doux)}
+a.bouton{display:inline-block;width:fit-content;padding:12px 18px;border-radius:10px;background:var(--marine);color:var(--carte);text-decoration:none;font-weight:700}
+</style>
+</head><body><main>
+<h1>Page introuvable</h1>
+<p>Cette adresse n'existe pas (ou plus). Tu vas être renvoyé vers l'accueil des exerciseurs dans quelques secondes.</p>
+<a class="bouton" id="accueil" href="/">Aller à l'accueil</a>
+</main>
+<script>
+(function(){
+  // Accueil : /exerciseurs/ sur GitHub Pages, / sur scienceexotic.fr
+  var base = /github\.io$/.test(location.hostname) ? "/exerciseurs/" : "/";
+  document.getElementById("accueil").href = base;
+  var s = document.createElement("script"); s.src = base + "suivi.js?v=20261012f"; s.defer = true; document.head.appendChild(s);
+  setTimeout(function(){ location.replace(base); }, 4000);
+})();
+</script>
+</body></html>
